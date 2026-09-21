@@ -1,3 +1,4 @@
+#This function checks how often the password is rotated via months
 def check_rotation(rotation_interval):
         #This checks how often you are changing your password per number of months
         if rotation_interval > 12:
@@ -11,6 +12,7 @@ def check_rotation(rotation_interval):
             rotation_ok = True
         return rotation_ok, rotational_verdict
 
+#This function checks if the username & password match
 def check_username(password, username):
         not_username = password != username
         if not_username == False:
@@ -19,6 +21,7 @@ def check_username(password, username):
             username_match = "NO"
         return not_username, username_match
 
+#This function checks if there are any digits in the password
 def check_digit(password):
         has_digit = False
         for char in password:
@@ -26,9 +29,10 @@ def check_digit(password):
                 has_digit = True
         return has_digit
 
+#This function checks the length of the password
+#The length_ok checks if the password length will be strong enough
 def check_length(password):
         password_length = len(password)
-        #This checks the password length in your password and lets you know how strong/weak it is
         if password_length < 8:
             length_verdict = "WEAK — does not meet minimum length requirements"
             length_ok = False
@@ -126,14 +130,14 @@ if __name__ == '__main__':
 
         count += 1
 
-#Batch Summary
-print("========================================")
-print("-----------BATCH AUDIT SUMMARY----------")
-print("========================================")
-print(f"Passwords audited: {count}")
-print(f"Passed: {total_pass}")
-print(f"Failed: {total_fail}")
-print(f"Critical Flags: {critical_count}")
-print("----------------------------------------")
-print("NOTE: Input is still hardcoded -- file reading coming in Week 08.")
-print("========================================")
+    #Batch Summary
+    print("========================================")
+    print("-----------BATCH AUDIT SUMMARY----------")
+    print("========================================")
+    print(f"Passwords audited: {count}")
+    print(f"Passed: {total_pass}")
+    print(f"Failed: {total_fail}")
+    print(f"Critical Flags: {critical_count}")
+    print("----------------------------------------")
+    print("NOTE: Input is still hardcoded -- file reading coming in Week 08.")
+    print("========================================")
