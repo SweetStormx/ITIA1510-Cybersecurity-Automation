@@ -4,6 +4,15 @@
 known_breached = ["password", "password123", "123456", "qwerty", "letmein",
                   "welcome", "monkey", "dragon", "master", "sunshine"]
 
+policy = {
+    "min_length": 8,
+    "strong_length": 15,
+    "max_rotation_months": 12,
+    "good_rotation_months": 6,
+    "require_digit": True,
+    "check_breach_list": True
+}
+
 #This function checks if any of the passwords have been breached
 def check_breach(password, known_breached):
     #the in operator checks whether a value exists anywhere in the list
@@ -12,15 +21,15 @@ def check_breach(password, known_breached):
     return not_breached
 
 #This function checks how often the password is rotated via months
-def check_rotation(rotation_interval):
+def check_rotation(rotation_interval, policy):
         #This checks how often you are changing your password per number of months
-        if rotation_interval > 12:
+        if rotation_interval > policy["max_rotation_months"]:
             rotational_verdict = "WARNING - rotation interval exceeds recommended maximum of 12 months"
             rotation_ok = False
-        elif 6 <= rotation_interval <= 12:
+        elif policy["good_rotation_months"] <= rotation_interval <= policy["max_rotation_months"]:
             rotational_verdict = "ACCEPTABLE — rotation interval within recommended range"
             rotation_ok = True
-        elif rotation_interval < 6:
+        elif rotation_interval < policy["good_rotation_months"]:
             rotational_verdict = "EXCELLENT — frequent rotation policy detected"
             rotation_ok = True
         return rotation_ok, rotational_verdict
@@ -44,23 +53,18 @@ def check_digit(password):
 
 #This function checks the length of the password
 #The length_ok checks if the password length will be strong enough
-def check_length(password):
+def check_length(password, policy):
         password_length = len(password)
-        if password_length < 8:
+        if password_length < policy["min_length"]:
             length_verdict = "WEAK — does not meet minimum length requirements"
             length_ok = False
-        elif 8 <= password_length <= 11:
-            length_verdict = "MODERATE — meets minimum but falls short of NIST recommendations"
-            length_ok = False
-        elif  12 <= password_length <= 14:
-            length_verdict = "GOOD — acceptable length for most systems"
-            length_ok = False
-        elif  password_length >= 15:
+        elif  password_length >= policy["strong_length"]:
             length_verdict = "STRONG — meets NIST SP 800-63B recommendations"
             length_ok = True
         return length_ok, length_verdict
 
-def audit_password(account, username, password, rotation_interval, known_breached):
+
+def audit_password(account, username, password, rotation_interval, known_breached, policy):
     #This will run the four password checks
     length_ok, length_verdict = check_length(password)
     has_digit = check_digit(password)
@@ -120,24 +124,26 @@ def audit_password(account, username, password, rotation_interval, known_breache
 
     return passed, failed, critical
 
-
 if __name__ == '__main__':
 
     credentials = [
-    ["Gmail", "hCole", "dragon", 12],
-    ["Outlook", "hCole", "hCole", 24],
-    ["VPN", "hCole", "Tr0ub4dor&3correct", 3],
-    ["Company Email", "hCole", "summer2024!", 6],
-    ["GitHub", "hCole", "Red-Coast-27-Torch", 6],
+    {"account": "Gmail", "username": "hCole", "password": "dragon", "rotation_interval": 12},
+    {"account": "Outlook", "username": "hCole", "password": "hCole", "rotation_interval": 24},
+    {"account": "VPN", "username": "hCole", "password": "Tr0ub4dor&3correct", "rotation_interval": 3},
+    {"account": "Company Email", "username": "hCole", "password": "summer2024!", "rotation_interval": 6},
+    {"account": "GitHub", "username": "hCole", "password": "Red-Coast-27-Torch", "rotation_interval": 6},
     ]
 
     count = 0
-    total_fail = 0
-    total_pass = 0
-    critical_count = 0
+    summary = {"total": 0, "passed": 0, "failed": 0, "critical": 0,
+           "failed_accounts": [], "critical_accounts": []}
 
     failed_accounts = []
     critical_accounts = []
+
+    for cred in credentials:
+        audit_password(cred["account"], cred["username"], cred["password"],
+                       cred["rotation_interval"], known_breached, policy)
 
     for credential in credentials:
         account, username, password, rotation_interval = credential
@@ -146,9 +152,11 @@ if __name__ == '__main__':
             account, username, password, rotation_interval, known_breached
         )
         if failed:
-             failed_accounts.append(account)
+             summary["failed"] += 1
+             summary["failed_accounts"].append(cred["account"])
         if critical:
-             critical_accounts.append(account)
+             summary["critical"] += 1
+             summary["critical_accounts"].append(cred["account"])
 
         total_pass += passed
         total_fail += failed
