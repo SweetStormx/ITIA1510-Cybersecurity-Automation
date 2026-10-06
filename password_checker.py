@@ -4,6 +4,7 @@
 known_breached = ["password", "password123", "123456", "qwerty", "letmein",
                   "welcome", "monkey", "dragon", "master", "sunshine"]
 
+#The policy is outside main so other files can import and use the policy settings
 policy = {
     "min_length": 8,
     "strong_length": 15,
@@ -51,8 +52,8 @@ def check_digit(password):
                 has_digit = True
         return has_digit
 
-#This function checks the length of the password
-#The length_ok checks if the password length will be strong enough
+#Reading the limit from policy keeps the value in one place instead of repeating 
+#the number in each function
 def check_length(password, policy):
         password_length = len(password)
         if password_length < policy["min_length"]:
@@ -117,9 +118,8 @@ def audit_password(account, username, password, rotation_interval, known_breache
     print(f"Rotation verdict:  {rotational_verdict}")
     print(f"Breach Check: {not_breached}")
     print("----------------------------------------")
-    print("NOTE: Input is still hardcoded -- file reading coming in Week 08.")
-    print("========================================")
     print(overall)
+    print("========================================")
     print("= = = = = = = = = = = = = = = = = = = = =")
 
     return passed, failed, critical
