@@ -1,0 +1,108 @@
+========================================
+   PASSWORD AUDIT REPORT   (1 of 5)
+========================================
+Account:           Gmail
+Username:          hCole
+Password length:   6 characters
+Length score:      60 points
+Rotation interval: 12 months
+Rotations (3 yr):  3
+----------------------------------------
+Length Verdict:    WEAK — does not meet minimum length requirements
+Digit found:       False
+Username match:    NO
+Rotation verdict:  ACCEPTABLE — rotation interval within recommended range
+Breach Check: False
+----------------------------------------
+OVERALL: FAIL - see findings above
+========================================
+= = = = = = = = = = = = = = = = = = = = =
+========================================
+   PASSWORD AUDIT REPORT   (2 of 5)
+========================================
+Account:           Outlook
+Username:          hCole
+Password length:   5 characters
+Length score:      50 points
+Rotation interval: 24 months
+Rotations (3 yr):  1
+----------------------------------------
+Length Verdict:    WEAK — does not meet minimum length requirements
+Digit found:       False
+Username match:    CRTICAL - password must not match username
+Rotation verdict:  WARNING - rotation interval exceeds recommended maximum of 12 months
+Breach Check: True
+----------------------------------------
+OVERALL: FAIL - see findings above
+========================================
+= = = = = = = = = = = = = = = = = = = = =
+========================================
+   PASSWORD AUDIT REPORT   (3 of 5)
+========================================
+Account:           VPN
+Username:          hCole
+Password length:   18 characters
+Length score:      180 points
+Rotation interval: 3 months
+Rotations (3 yr):  12
+----------------------------------------
+Length Verdict:    STRONG — meets NIST SP 800-63B recommendations
+Digit found:       True
+Username match:    NO
+Rotation verdict:  EXCELLENT — frequent rotation policy detected
+Breach Check: True
+----------------------------------------
+OVERALL: PASS - password meets all checked criteria
+========================================
+= = = = = = = = = = = = = = = = = = = = =
+========================================
+   PASSWORD AUDIT REPORT   (4 of 5)
+========================================
+Account:           Company Email
+Username:          hCole
+Password length:   11 characters
+Length score:      110 points
+Rotation interval: 6 months
+Rotations (3 yr):  6
+----------------------------------------
+Length Verdict:    MODERATE — meets minimum but falls short of NIST recommendations
+Digit found:       True
+Username match:    NO
+Rotation verdict:  ACCEPTABLE — rotation interval within recommended range
+Breach Check: True
+----------------------------------------
+OVERALL: PASS - password meets all checked criteria
+========================================
+= = = = = = = = = = = = = = = = = = = = =
+========================================
+   PASSWORD AUDIT REPORT   (5 of 5)
+========================================
+Account:           GitHub
+Username:          hCole
+Password length:   18 characters
+Length score:      180 points
+Rotation interval: 6 months
+Rotations (3 yr):  6
+----------------------------------------
+Length Verdict:    STRONG — meets NIST SP 800-63B recommendations
+Digit found:       True
+Username match:    NO
+Rotation verdict:  ACCEPTABLE — rotation interval within recommended range
+Breach Check: True
+----------------------------------------
+OVERALL: PASS - password meets all checked criteria
+========================================
+= = = = = = = = = = = = = = = = = = = = =
+========================================
+-----------BATCH AUDIT SUMMARY----------
+========================================
+Credentials audited: 1
+Passed: 1
+Failed: 0
+----------------------------------------
+Failed accounts: []
+Critical Flags: 0
+Critical Accounts: []
+----------------------------------------
+NOTE: Breach list and credentials are hardcoded -- file reading coming in Week 08
+========================================
