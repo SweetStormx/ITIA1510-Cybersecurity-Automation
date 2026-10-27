@@ -1,7 +1,6 @@
+from password_checker import load_credentials, load_breached, write_report, check_breach, check_rotation, check_username, check_digit, check_length, audit_password, save_summary, load_summary, load_history, add_to_history, save_history, policy
 
-from password_checker import check_length, check_digit, check_username, check_rotation, check_breach,load_credentials, load_breached, write_report, policy, save_summary, load_summary
 known_breached = load_breached("breached.txt")
-#DIGIT
 result1 = check_digit("hello")
 assert result1 == False
 print("PASS: check_digit correctly identified password with no digit")
@@ -119,3 +118,33 @@ for credential in credentials:
     assert password not in saved_text
 
 print("PASS: no passwords appear in the saved summary")
+
+
+# Test 1: A missing history file returns an empty list.
+assert load_history("missing_history_test.json") == []
+print("PASS: missing history file returns an empty list")
+
+
+# Test 2: The first history entry has run number 1.
+history = []
+history = add_to_history(history, sample, 3)
+
+assert len(history) == 1
+assert history[0]["run"] == 1
+print("PASS: first history run is numbered 1")
+
+
+# Test 3: Only the newest runs are kept.
+history = []
+
+for i in range(3):
+    history = add_to_history(history, sample, 2)
+
+assert [entry["run"] for entry in history] == [2, 3]
+print("PASS: add_to_history kept only the newest 2 runs")
+
+
+# Test 4: Saved history loads back unchanged.
+save_history(history, "test_history.json")
+assert load_history("test_history.json") == history
+print("PASS: save_history and load_history returned the same history")

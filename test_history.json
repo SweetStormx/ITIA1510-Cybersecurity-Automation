@@ -1,0 +1,18 @@
+[
+  {
+    "run": 2,
+    "passed": 1,
+    "failed": 1,
+    "critical_accounts": [
+      "Gmail"
+    ]
+  },
+  {
+    "run": 3,
+    "passed": 1,
+    "failed": 1,
+    "critical_accounts": [
+      "Gmail"
+    ]
+  }
+]

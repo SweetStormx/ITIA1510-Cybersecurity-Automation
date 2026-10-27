@@ -1,4 +1,5 @@
 import json
+import os
 #This list is the known breached passwords that are easily guessed
 #This list is outside of the main block so check_breach can access the list and the test file can import it
 
@@ -9,7 +10,8 @@ policy = {
     "max_rotation_months": 12,
     "good_rotation_months": 6,
     "require_digit": True,
-    "check_breach_list": True
+    "check_breach_list": True,
+    "history_runs": 3
 }
 
 def save_summary(summary, filepath):
@@ -23,6 +25,41 @@ def load_summary(filepath):
      with open(filepath, "r") as f:
           # Return the JSON data as a Python dictionary.
           return json.load(f)
+
+
+def load_history(filepath):
+    # A missing file means this is the first run, so start with an empty history.
+    if not os.path.exists(filepath):
+        return []
+
+    with open(filepath, "r") as f:
+        return json.load(f)
+
+
+def add_to_history(history, summary, keep):
+    # Use the newest entry because trimming means len(history) stops increasing.
+    if history:
+        run_number = history[-1]["run"] + 1
+    else:
+        run_number = 1
+
+    # Add this run's counts and critical account names to the history.
+    history.append({
+        "run": run_number,
+        "passed": summary["passed"],
+        "failed": summary["failed"],
+        "critical_accounts": summary["critical_accounts"]
+    })
+
+    # Keep only the newest entries so the history stays within its limit.
+    return history[-keep:]
+
+
+def save_history(history, filepath):
+    # Write the history list as readable JSON.
+    with open(filepath, "w") as f:
+        json.dump(history, f, indent=2)
+
 
 
 def load_credentials(filepath):
@@ -257,3 +294,7 @@ if __name__ == '__main__':
 
     write_report(report_lines, "report.txt")
     save_summary(summary, "audit_summary.json")
+
+    history = load_history("audit_history.json")
+    history = add_to_history(history, summary, policy["history_runs"])
+    save_history(history, "audit_history.json")
