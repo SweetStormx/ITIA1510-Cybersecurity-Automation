@@ -1,4 +1,4 @@
-
+import json
 #This list is the known breached passwords that are easily guessed
 #This list is outside of the main block so check_breach can access the list and the test file can import it
 
@@ -11,6 +11,19 @@ policy = {
     "require_digit": True,
     "check_breach_list": True
 }
+
+def save_summary(summary, filepath):
+     #Open the file in write mode
+     with open(filepath, "w") as f:
+          #Save the summary to the dictionary as readable
+          json.dump(summary, f, indent=2)
+
+def load_summary(filepath):
+     # Open the file in read mode.
+     with open(filepath, "r") as f:
+          # Return the JSON data as a Python dictionary.
+          return json.load(f)
+
 
 def load_credentials(filepath):
     """Read credentials from a comma-separated text file."""
@@ -184,19 +197,15 @@ if __name__ == '__main__':
     credentials = load_credentials("credentials.txt")
     known_breached = load_breached("breached.txt")
     report_lines = []
-    #{"account": "Gmail", "username": "hCole", "password": "dragon", "rotation_interval": 12},
-    #{"account": "Outlook", "username": "hCole", "password": "hCole", "rotation_interval": 24},
-    #{"account": "VPN", "username": "hCole", "password": "Tr0ub4dor&3correct", "rotation_interval": 3},
-    #{"account": "Company Email", "username": "hCole", "password": "summer2024!", "rotation_interval": 6},
-    #{"account": "GitHub", "username": "hCole", "password": "Red-Coast-27-Torch", "rotation_interval": 6},
 
-    count = 0
-    summary = {"total": 0, "passed": 0, "failed": 0, "critical": 0,
-           "failed_accounts": [], "critical_accounts": []}
-
-    failed_accounts = []
-    critical_accounts = []
-
+    summary = {
+        "total": 0,
+        "passed": 0,
+        "failed": 0,
+        "critical": 0,
+        "failed_accounts": [],
+        "critical_accounts": []
+    }
 
     for report_number, cred in enumerate(credentials, start=1):
         passed, failed, critical = audit_password(
@@ -208,30 +217,26 @@ if __name__ == '__main__':
             policy,
             report_lines,
             report_number
-    )
+        )
 
-    summary["total"] += 1
-    summary["passed"] += passed
-    summary["failed"] += failed
-    summary["critical"] += critical
+        # Update the counts for each credential audited.
+        summary["total"] += 1
+        summary["passed"] += passed
+        summary["failed"] += failed
+        summary["critical"] += critical
 
-    if failed:
-        summary["failed_accounts"].append(cred["account"])
+        # Save account names without saving any passwords.
+        if failed:
+            summary["failed_accounts"].append(cred["account"])
 
-    if critical:
-        summary["critical_accounts"].append(cred["account"])
+        if critical:
+            summary["critical_accounts"].append(cred["account"])
 
-        
+    # Print the individual password audit reports.
     for line in report_lines:
-             print(line)
+        print(line)
 
-    def write_report(report_lines, filepath):
-    #"""Write each report line to a text file."""
-        with open(filepath, "w") as f:
-            for line in report_lines:
-                f.write(line + "\n")
-
-    #Batch Summary
+    # Add the batch summary to the report.
     report_lines.append("========================================")
     report_lines.append("-----------BATCH AUDIT SUMMARY----------")
     report_lines.append("========================================")
@@ -239,13 +244,16 @@ if __name__ == '__main__':
     report_lines.append(f"Passed: {summary['passed']}")
     report_lines.append(f"Failed: {summary['failed']}")
     report_lines.append("----------------------------------------")
-    report_lines.append(f"Failed accounts: {failed_accounts}")
+    report_lines.append(f"Failed accounts: {summary['failed_accounts']}")
     report_lines.append(f"Critical Flags: {summary['critical']}")
-    report_lines.append(f"Critical Accounts: {critical_accounts}")
+    report_lines.append(f"Critical Accounts: {summary['critical_accounts']}")
     report_lines.append("----------------------------------------")
     report_lines.append("NOTE: Breach list and credentials are hardcoded -- file reading coming in Week 08")
     report_lines.append("========================================")
 
-    for line in report_lines:
+    # Print the batch summary.
+    for line in report_lines[-10:]:
         print(line)
+
     write_report(report_lines, "report.txt")
+    save_summary(summary, "audit_summary.json")

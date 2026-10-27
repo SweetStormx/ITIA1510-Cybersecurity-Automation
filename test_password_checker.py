@@ -1,5 +1,5 @@
 
-from password_checker import check_length, check_digit, check_username, check_rotation, check_breach,load_credentials, load_breached, write_report, policy
+from password_checker import check_length, check_digit, check_username, check_rotation, check_breach,load_credentials, load_breached, write_report, policy, save_summary, load_summary
 known_breached = load_breached("breached.txt")
 #DIGIT
 result1 = check_digit("hello")
@@ -84,3 +84,38 @@ result17 = report_text == "First test line\nSecond test line\n"
 assert result17 == True
 
 print("PASS: write_report saves the correct text")
+
+# Test 1: The saved dictionary matches the original.
+sample = {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "critical": 1,
+    "failed_accounts": ["Gmail"],
+    "critical_accounts": ["Gmail"]
+}
+
+save_summary(sample, "test_summary.json")
+assert load_summary("test_summary.json") == sample
+print("PASS: save_summary and load_summary gave back the same dictionary")
+
+
+# Test 2: failed_accounts is a list.
+loaded = load_summary("test_summary.json")
+assert isinstance(loaded["failed_accounts"], list)
+print("PASS: failed_accounts is a list")
+
+
+# Test 3: No password appears in the saved JSON file.
+with open("test_summary.json", "r") as f:
+    saved_text = f.read()
+
+with open("credentials.txt", "r") as f:
+    credentials = load_credentials("credentials.txt")
+
+# Check every actual password against the saved file.
+for credential in credentials:
+    password = credential["password"]
+    assert password not in saved_text
+
+print("PASS: no passwords appear in the saved summary")
