@@ -1,4 +1,5 @@
-from password_checker import load_credentials, load_breached, write_report, check_breach, check_rotation, check_username, check_digit, check_length, audit_password, save_summary, load_summary, load_history, add_to_history, save_history, policy
+import json
+from password_checker import load_credentials, load_breached, write_report, check_breach, check_rotation, check_username, check_digit, check_length, audit_password, save_summary, load_summary, load_history, add_to_history, save_history, breach_verdicts, policy
 
 known_breached = load_breached("breached.txt")
 result1 = check_digit("hello")
@@ -148,3 +149,21 @@ print("PASS: add_to_history kept only the newest 2 runs")
 save_history(history, "test_history.json")
 assert load_history("test_history.json") == history
 print("PASS: save_history and load_history returned the same history")
+
+# BREACH VERDICTS
+result18 = breach_verdicts("hCole", credentials, known_breached)
+assert result18["accounts"][0] == {"account": "Gmail", "on_breach_list": True}
+print("PASS: breach_verdicts marked the Gmail password as on the breach list")
+
+result19 = breach_verdicts("nobody", credentials, known_breached)
+assert result19["accounts"] == []
+print("PASS: breach_verdicts returns an empty accounts list for a username with no accounts")
+
+# Convert the verdict to JSON so the test checks every part of the returned result.
+result20 = breach_verdicts("jsmith", credentials, known_breached)
+verdict_text = json.dumps(result20)
+for credential in credentials:
+    # SSH Server uses the username as its password, and the username is intentionally included.
+    if credential["account"] != "SSH Server":
+        assert credential["password"] not in verdict_text
+print("PASS: breach_verdicts does not include passwords in its result")

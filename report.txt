@@ -96,13 +96,13 @@ OVERALL: PASS - password meets all checked criteria
 ========================================
 -----------BATCH AUDIT SUMMARY----------
 ========================================
-Credentials audited: 1
-Passed: 1
-Failed: 0
+Credentials audited: 5
+Passed: 3
+Failed: 2
 ----------------------------------------
-Failed accounts: []
-Critical Flags: 0
-Critical Accounts: []
+Failed accounts: ['Gmail', 'Outlook']
+Critical Flags: 2
+Critical Accounts: ['Gmail', 'Outlook']
 ----------------------------------------
 NOTE: Breach list and credentials are hardcoded -- file reading coming in Week 08
 ========================================

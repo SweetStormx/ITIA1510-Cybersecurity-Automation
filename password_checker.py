@@ -115,6 +115,27 @@ def check_breach(password, known_breached):
     not_breached = password not in known_breached
     return not_breached
 
+
+# Create a minimized result that can be shared without exposing passwords.
+def breach_verdicts(username, credentials, known_breached):
+    accounts = []
+
+    # Only include accounts that belong to the requested username.
+    for credential in credentials:
+        if credential["username"] == username:
+            # The password is left out because the reader only needs the breach verdict.
+            # check_breach() returns True for safe passwords, so this verdict must be its opposite.
+            on_breach_list = not check_breach(credential["password"], known_breached)
+            accounts.append({
+                "account": credential["account"],
+                "on_breach_list": on_breach_list
+            })
+
+    return {
+        "username": username,
+        "accounts": accounts
+    }
+
 #This function checks how often the password is rotated via months
 def check_rotation(rotation_interval, policy):
         #This checks how often you are changing your password per number of months
@@ -298,3 +319,10 @@ if __name__ == '__main__':
     history = load_history("audit_history.json")
     history = add_to_history(history, summary, policy["history_runs"])
     save_history(history, "audit_history.json")
+
+    # Create and save the same minimized breach verdict that could be sent to a model.
+    breach_result = breach_verdicts("hCole", credentials, known_breached)
+    print(json.dumps(breach_result, indent=2))
+
+    with open("breach_check.json", "w") as f:
+        json.dump(breach_result, f, indent=2)
