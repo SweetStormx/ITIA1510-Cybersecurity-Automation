@@ -14,6 +14,9 @@ policy = {
     "history_runs": 3
 }
 
+# These names must match the strings checked inside run_check().
+CHECK_NAMES = ["check_breach", "check_length", "check_rotation"]
+
 def save_summary(summary, filepath):
      #Open the file in write mode
      with open(filepath, "w") as f:
@@ -135,6 +138,60 @@ def breach_verdicts(username, credentials, known_breached):
         "username": username,
         "accounts": accounts
     }
+
+
+def length_verdicts(username, credentials, known_breached):
+    accounts = []
+
+    for credential in credentials:
+        if credential["username"] == username:
+            # Keep only the boolean result; never include the password itself.
+            length_ok, length_verdict = check_length(credential["password"], policy)
+            accounts.append({
+                "account": credential["account"],
+                "long_enough": length_ok
+            })
+
+    return {
+        "username": username,
+        "accounts": accounts
+    }
+
+
+def rotation_verdicts(username, credentials, known_breached):
+    accounts = []
+
+    # known_breached stays in this function's signature so all check functions
+    # share the same arguments and can be called consistently by run_check().
+    for credential in credentials:
+        if credential["username"] == username:
+            rotation_ok, rotational_verdict = check_rotation(
+                credential["rotation_interval"], policy
+            )
+            accounts.append({
+                "account": credential["account"],
+                "rotation_months": credential["rotation_interval"],
+                "rotation_ok": rotation_ok
+            })
+
+    return {
+        "username": username,
+        "accounts": accounts
+    }
+
+
+def run_check(name, username, credentials, known_breached):
+    if name == "check_breach":
+        result = breach_verdicts(username, credentials, known_breached)
+    elif name == "check_length":
+        result = length_verdicts(username, credentials, known_breached)
+    elif name == "check_rotation":
+        result = rotation_verdicts(username, credentials, known_breached)
+    else:
+        # Reject unsupported names so callers cannot accidentally run an unknown check.
+        result = {"error": "unknown check"}
+
+    return result
 
 #This function checks how often the password is rotated via months
 def check_rotation(rotation_interval, policy):
@@ -321,8 +378,16 @@ if __name__ == '__main__':
     save_history(history, "audit_history.json")
 
     # Create and save the same minimized breach verdict that could be sent to a model.
-    breach_result = breach_verdicts("hCole", credentials, known_breached)
+    breach_result = breach_verdicts("jsmith", credentials, known_breached)
     print(json.dumps(breach_result, indent=2))
 
     with open("breach_check.json", "w") as f:
         json.dump(breach_result, f, indent=2)
+
+    # Run each supported check using the same username and input data.
+    all_checks = {}
+    for name in CHECK_NAMES:
+        all_checks[name] = run_check(name, "hCole", credentials, known_breached)
+
+    with open("all_checks.json", "w") as f:
+        json.dump(all_checks, f, indent=2)

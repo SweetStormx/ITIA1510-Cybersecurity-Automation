@@ -1,5 +1,5 @@
 import json
-from password_checker import load_credentials, load_breached, write_report, check_breach, check_rotation, check_username, check_digit, check_length, audit_password, save_summary, load_summary, load_history, add_to_history, save_history, breach_verdicts, policy
+from password_checker import load_credentials, load_breached, write_report, check_breach, check_rotation, check_username, check_digit, check_length, audit_password, save_summary, load_summary, load_history, add_to_history, save_history, breach_verdicts, length_verdicts, rotation_verdicts, run_check, CHECK_NAMES, policy
 
 known_breached = load_breached("breached.txt")
 result1 = check_digit("hello")
@@ -160,10 +160,37 @@ assert result19["accounts"] == []
 print("PASS: breach_verdicts returns an empty accounts list for a username with no accounts")
 
 # Convert the verdict to JSON so the test checks every part of the returned result.
-result20 = breach_verdicts("jsmith", credentials, known_breached)
+result20 = breach_verdicts("hCole", credentials, known_breached)
 verdict_text = json.dumps(result20)
 for credential in credentials:
-    # SSH Server uses the username as its password, and the username is intentionally included.
-    if credential["account"] != "SSH Server":
+    # The username is part of the result, so allow it when it also happens to be a password.
+    if credential["password"] != credential["username"]:
         assert credential["password"] not in verdict_text
 print("PASS: breach_verdicts does not include passwords in its result")
+
+
+# WEEK 12: LENGTH VERDICTS
+length_result = length_verdicts("hCole", credentials, known_breached)
+assert length_result["accounts"][2] == {"account": "VPN", "long_enough": True}
+print("PASS: length_verdicts reports the VPN password meets the length policy")
+
+# WEEK 12: ROTATION VERDICTS
+rotation_result = rotation_verdicts("hCole", credentials, known_breached)
+assert rotation_result["accounts"][1] == {
+    "account": "Outlook", "rotation_months": 24, "rotation_ok": False
+}
+print("PASS: rotation_verdicts flags Outlook's 24-month rotation interval")
+
+# CHECK_NAMES must use the exact strings handled by run_check().
+assert CHECK_NAMES == ["check_breach", "check_length", "check_rotation"]
+print("PASS: CHECK_NAMES contains the three supported check names")
+
+# run_check should return the same result as calling the selected function directly.
+assert run_check("check_breach", "hCole", credentials, known_breached) == breach_verdicts(
+    "hCole", credentials, known_breached
+)
+print("PASS: run_check dispatches the breach check correctly")
+
+# Unsupported names must return an error instead of running a different check.
+assert run_check("reset_password", "hCole", credentials, known_breached) == {"error": "unknown check"}
+print("PASS: run_check rejects an unknown check name")
