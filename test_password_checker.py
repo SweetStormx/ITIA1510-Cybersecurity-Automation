@@ -1,7 +1,10 @@
 import json
+import os
+import password_checker
 from password_checker import load_credentials, load_breached, write_report, check_breach, check_rotation, check_username, check_digit, check_length, audit_password, save_summary, load_summary, load_history, add_to_history, save_history, breach_verdicts, length_verdicts, rotation_verdicts, run_check, CHECK_NAMES, policy
 
 known_breached = load_breached("breached.txt")
+password_checker.AUDIT_LOG = "test_audit_log.jsonl"
 result1 = check_digit("hello")
 assert result1 == False
 print("PASS: check_digit correctly identified password with no digit")
@@ -194,3 +197,34 @@ print("PASS: run_check dispatches the breach check correctly")
 # Unsupported names must return an error instead of running a different check.
 assert run_check("reset_password", "hCole", credentials, known_breached) == {"error": "unknown check"}
 print("PASS: run_check rejects an unknown check name")
+
+# WEEK 13: AUDIT LOG TESTS
+# Start these tests with a clean test log so earlier Week 12 dispatch tests do not affect them.
+if os.path.exists("test_audit_log.jsonl"):
+    os.remove("test_audit_log.jsonl")
+
+# Test 1: log_check writes exactly the four required keys.
+password_checker.log_check("check_length", "jsmith", {"username": "jsmith", "accounts": []},
+                           "test_audit_log.jsonl")
+entries = password_checker.read_audit_log("test_audit_log.jsonl")
+assert set(entries[-1].keys()) == {"check", "result", "time", "username"}
+print("PASS: log_check writes an entry with exactly the required keys")
+
+# Test 2: run_check logs supported and refused checks in the order requested.
+run_check("check_length", "jsmith", credentials, known_breached)
+run_check("reset_password", "jsmith", credentials, known_breached)
+entries = password_checker.read_audit_log("test_audit_log.jsonl")
+assert [entry["check"] for entry in entries[-2:]] == ["check_length", "reset_password"]
+assert entries[-1]["result"] == {"error": "unknown check"}
+print("PASS: run_check logs supported and refused checks in order")
+
+# Test 3: the audit log must not expose credential passwords (except the SSH Server
+# password, which is deliberately the same as its username).
+with open("test_audit_log.jsonl", "r") as f:
+    audit_text = f.read()
+
+for credential in credentials:
+    if credential["account"] != "SSH Server":
+        assert credential["password"] not in audit_text
+print("PASS: audit log does not expose credential passwords")
+

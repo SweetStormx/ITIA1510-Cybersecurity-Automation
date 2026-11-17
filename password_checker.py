@@ -1,5 +1,6 @@
 import json
 import os
+from datetime import datetime, timezone
 #This list is the known breached passwords that are easily guessed
 #This list is outside of the main block so check_breach can access the list and the test file can import it
 
@@ -13,6 +14,8 @@ policy = {
     "check_breach_list": True,
     "history_runs": 3
 }
+
+AUDIT_LOG = "audit_log.jsonl"
 
 # These names must match the strings checked inside run_check().
 CHECK_NAMES = ["check_breach", "check_length", "check_rotation"]
@@ -180,6 +183,32 @@ def rotation_verdicts(username, credentials, known_breached):
     }
 
 
+def log_check(name, username, result, log_path):
+    # UTC gives every audit entry a consistent timezone, even across machines.
+    entry = {
+        "time": datetime.now(timezone.utc).isoformat(),
+        "check": name,
+        "username": username,
+        "result": result
+    }
+
+    # Append mode adds a new line without overwriting entries already in the log.
+    with open(log_path, "a") as f:
+        f.write(json.dumps(entry) + "\n")
+
+
+def read_audit_log(log_path):
+    entries = []
+
+    with open(log_path, "r") as f:
+        for line in f:
+            if line.strip() == "":
+                continue
+            entries.append(json.loads(line))
+
+    return entries
+
+
 def run_check(name, username, credentials, known_breached):
     if name == "check_breach":
         result = breach_verdicts(username, credentials, known_breached)
@@ -191,6 +220,8 @@ def run_check(name, username, credentials, known_breached):
         # Reject unsupported names so callers cannot accidentally run an unknown check.
         result = {"error": "unknown check"}
 
+    # Logging here captures every requested check, including refused names, in one place.
+    log_check(name, username, result, AUDIT_LOG)
     return result
 
 #This function checks how often the password is rotated via months
@@ -391,3 +422,5 @@ if __name__ == '__main__':
 
     with open("all_checks.json", "w") as f:
         json.dump(all_checks, f, indent=2)
+
+    print(f"audit_log.jsonl holds {len(read_audit_log(AUDIT_LOG))} entries")
